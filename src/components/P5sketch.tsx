@@ -1,4 +1,4 @@
-import React, {useRef, useEffect, useState} from "react";
+import React, {useRef, useEffect} from "react";
 import p5, {Vector} from "p5";
 import classesData from "./data/classes.json";
 import methodCallsData from "./data/methodcalls.json";
@@ -52,6 +52,7 @@ let initSpeed = 2;
 let weightMethods = 2.5;
 let weightFields = 5;
 let initRadius = 40;
+let opacityBigCircle = 125;
 //user defined parameters
 let density = 0.01;
 let minSpeed = 1;
@@ -423,7 +424,7 @@ class Circle{
     }
 
     private getOpacity():number{
-        return this.isHovering? 255:200;
+        return this.isHovering? 255:opacityBigCircle;
     }
 
     public callMethod(index:number){
