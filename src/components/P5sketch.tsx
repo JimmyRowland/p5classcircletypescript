@@ -1,7 +1,7 @@
-import React, { useRef, useEffect } from "react";
+import React, {useRef, useEffect, useState} from "react";
 import p5, {Vector} from "p5";
-import classesData from "./data/classes.json"
-import methodCallsData from "./data/methodcalls.json"
+import classesData from "./data/classes.json";
+import methodCallsData from "./data/methodcalls.json";
 
 
 interface MethodCall{
@@ -38,32 +38,168 @@ const sleep = (milliseconds: number) => {
 }
 
 
-
+let circles: Circle[] = [];
+let inputFrom: InputParameters;
 const methodCalls: MethodCall = methodCallsData;
 const classes: ClassInfo[] = classesData;
 const classMapIndex: Map<string,number> = getClassnameIndexMap(classes);
-
+let space = 40;
 let red: number[] = [];
 let green: number[] = [];
 let blue: number[] = [];
-//user defined parameters
-let density = 0.01;
 let padding = 30;
 let initSpeed = 2;
-let maxSpeed = 1;
-let attractionConstant = 10000;
+let weightMethods = 2.5;
+let weightFields = 5;
+let initRadius = 40;
+//user defined parameters
+let density = 0.01;
+let minSpeed = 1;
+let attractionConstant = 500;
 let smallCircleAttractionConstant = 10;
 const dotOpacity = 255;
 let interval = 50;
-let weightMethods = 2.5;
-let weightFields = 5;
 let weightCallMethods = 0.2;
-let initRadius = 40;
 let collisionVelocityLoss = 0.2;
 let alwaysVisible = true;
 let smallCircleRadius = 5;
 let smallCircleMass = 25;
 let showSmallCircle = true;
+let maxOrbitRadius = 50;
+
+
+class InputParameters{
+    private isVisible: boolean = false;
+    private p: p5;
+    private densitySlider: p5.Element;
+    private minSpeedSlider: p5.Element;
+    private bigCircleAttractionConstantSlider: p5.Element;
+    private smallCircleAttractionConstantSlider: p5.Element;
+    private intervalSlider: p5.Element;
+    private weightCallMethodsSlider: p5.Element;
+    private collisionVelocityLossSlider: p5.Element;
+    private smallCircleRadiusSlider: p5.Element;
+    private maxOrbitSlider: p5.Element;
+    private alwaysVisibleButton: p5.Element;
+    private showSmallCircleButton: p5.Element;
+    private showFormButton: p5.Element;
+    private hideFormButton: p5.Element;
+    private px = -1000;
+    private pxx = 0;
+
+    constructor(p5sketch:p5) {
+        this.p = p5sketch;
+        this.densitySlider = this.p.createSlider(0,100,density*1000);
+        this.densitySlider.position(this.px,space);
+        this.densitySlider.style('width', '200px')
+        this.minSpeedSlider = this.p.createSlider(0,10,minSpeed);
+        this.minSpeedSlider.position(this.px,space*2);
+        this.minSpeedSlider.style('width', '200px')
+        this.bigCircleAttractionConstantSlider = this.p.createSlider(0,100000, attractionConstant);
+        this.bigCircleAttractionConstantSlider.position(this.px,space*3);
+        this.bigCircleAttractionConstantSlider.style('width', '200px')
+        this.smallCircleAttractionConstantSlider = this.p.createSlider(0,50, smallCircleAttractionConstant);
+        this.smallCircleAttractionConstantSlider.position(this.px,space*4);
+        this.smallCircleAttractionConstantSlider.style('width', '200px')
+        this.intervalSlider = this.p.createSlider(0,200, interval);
+        this.intervalSlider.position(this.px,space*5);
+        this.intervalSlider.style('width', '200px')
+        this.weightCallMethodsSlider = this.p.createSlider(0,100,weightCallMethods*100);
+        this.weightCallMethodsSlider.position(this.px,space*6);
+        this.weightCallMethodsSlider.style('width', '200px')
+        this.collisionVelocityLossSlider = this.p.createSlider(0,100,collisionVelocityLoss*100);
+        this.collisionVelocityLossSlider.position(this.px,space*7);
+        this.collisionVelocityLossSlider.style('width', '200px')
+        this.smallCircleRadiusSlider = this.p.createSlider(0,20, smallCircleRadius);
+        this.smallCircleRadiusSlider.position(this.px,space*8);
+        this.smallCircleRadiusSlider.style('width', '200px')
+        this.maxOrbitSlider = this.p.createSlider(0,1000, maxOrbitRadius);
+        this.maxOrbitSlider.position(this.px,space*9);
+        this.maxOrbitSlider.style('width', '200px')
+        this.alwaysVisibleButton = this.p.createButton("Hide inactive big circles");
+        this.alwaysVisibleButton.position(this.px,space*10);
+        this.showSmallCircleButton = this.p.createButton("Hide small circles");
+        this.showSmallCircleButton.position(this.px,space*11);
+        this.hideFormButton = this.p.createButton("Hide Form");
+        this.hideFormButton.position(this.px,space*12);
+        this.showFormButton = this.p.createButton("Show Form");
+        this.showFormButton.position(this.pxx,0);
+    }
+    public render(){
+        if(this.isVisible){
+            density = Number (this.densitySlider.value())/1000;
+            minSpeed = Number (this.minSpeedSlider.value());
+            attractionConstant = Number (this.bigCircleAttractionConstantSlider.value());
+            smallCircleAttractionConstant = Number (this.smallCircleAttractionConstantSlider.value());
+            weightCallMethods = Number (this.weightCallMethodsSlider.value())/100;
+            collisionVelocityLoss = Number (this.collisionVelocityLossSlider.value())/100;
+            smallCircleRadius = Number (this.smallCircleRadiusSlider.value());
+            maxOrbitRadius = Number (this.maxOrbitSlider.value());
+            this.showSmallCircleButton.mousePressed(()=>{showSmallCircle=!showSmallCircle});
+            this.alwaysVisibleButton.mousePressed(()=>{alwaysVisible=!alwaysVisible});
+            this.hideFormButton.mousePressed(()=>{this.menuToggle()});
+            this.p.fill(255);
+            this.p.textSize(15);
+            let padx = 5;
+            let pady = 5;
+            this.p.text("density",padx,space-pady);
+            this.p.text("min speed",padx,space*2-pady);
+            this.p.text("attraction constant among big circles",padx,space*3-pady);
+            this.p.text("attraction constant between big circles and small circles",padx,space*4-pady);
+            this.p.text("small circle populating time interval",padx,space*5-pady);
+            this.p.text("big circle growth rate",padx,space*6-pady);
+            this.p.text("velocity loss rate on collision",padx,space*7-pady);
+            this.p.text("small circle radius",padx,space*8-pady);
+            this.p.text("small circle max orbit",padx,space*9-pady);
+
+        }
+        else{
+            this.showFormButton.mousePressed(()=>{this.menuToggle()});
+        }
+    }
+
+    public menuToggle(){
+        let temp = this.px;
+        this.px = this.pxx;
+        this.pxx = temp;
+        this.setFormPosition();
+        this.isVisible = !this.isVisible;
+    }
+
+    public setFormPosition(){
+
+        this.densitySlider.position(this.px);
+
+
+        this.minSpeedSlider.position(this.px);
+
+
+        this.bigCircleAttractionConstantSlider.position(this.px);
+
+
+        this.smallCircleAttractionConstantSlider.position(this.px);
+
+
+        this.intervalSlider.position(this.px);
+
+
+        this.weightCallMethodsSlider.position(this.px);
+
+
+        this.collisionVelocityLossSlider.position(this.px);
+
+
+        this.smallCircleRadiusSlider.position(this.px);
+        this.maxOrbitSlider.position(this.px);
+
+        this.alwaysVisibleButton.position(this.px);
+
+        this.showSmallCircleButton.position(this.px);
+
+        this.hideFormButton.position(this.px);
+        this.showFormButton.position(this.pxx);
+    }
+}
 
 class SmallCircle{
     private p: p5;
@@ -94,11 +230,15 @@ class SmallCircle{
     public attracted(circle: Circle):void{
             const dir = p5.Vector.sub(circle.getLocatoin(), this.location);
             // this.p.print(dir);
+            const normalizeDir = dir.copy();
+            normalizeDir.normalize();
             if(dir.mag() > smallCircleRadius/2+circle.getRadius()/2){
                 const force = smallCircleMass*circle.getMass()/dir.magSq()*smallCircleAttractionConstant;
-                dir.normalize();
-                dir.mult(force);
-                this.applyforce(dir);
+                if(dir.mag()> smallCircleRadius/2+circle.getRadius()/2 +maxOrbitRadius){
+                    this.acceleration.add(normalizeDir);
+                }
+                normalizeDir.mult(force);
+                this.applyforce(normalizeDir);
         }
     }
 
@@ -116,10 +256,10 @@ class SmallCircle{
         this.velocity.add(this.acceleration);
         this.location.add(this.velocity);
         if((this.location.x>this.p.windowWidth-smallCircleRadius/2 && this.velocity.x>0) ||(this.location.x<smallCircleRadius/2 && this.velocity.x<0)){
-            this.velocity.x = this.velocity.x > (maxSpeed)? -1*this.velocity.x * collisionVelocityLoss : this.velocity.x*-1;
+            this.velocity.x = this.velocity.x > (minSpeed)? -1*this.velocity.x * collisionVelocityLoss : this.velocity.x*-1;
         }
         if((this.location.y>this.p.windowHeight-smallCircleRadius/2 && this.velocity.y>0) ||(this.location.y<smallCircleRadius/2 && this.velocity.y<0)){
-            this.velocity.y = this.velocity.y > (maxSpeed)? this.velocity.y*(-1*collisionVelocityLoss) : this.velocity.y*-1;
+            this.velocity.y = this.velocity.y > (minSpeed)? this.velocity.y*(-1*collisionVelocityLoss) : this.velocity.y*-1;
         }
         this.acceleration.mult(0);
     }
@@ -194,10 +334,10 @@ class Circle{
         return this.index;
     }
     public attracted(circle: Circle):void{
-        if(this.isVisible && circle.isVisible){
+        if(alwaysVisible || (this.isVisible && circle.isVisible)){
             const dir = p5.Vector.sub(circle.getLocatoin(), this.location);
             // this.p.print(dir);
-            if(dir.mag() > this.radius/2+circle.getRadius()/2){
+            if(dir.mag() > this.radius/8*3+circle.getRadius()/8*3){
                 const force = circle.getCharge(this.index)/dir.magSq()*attractionConstant;
                 // const force2 = this.charges[circle.getIndex()]/dir.magSq()*attractionConstant;
                 // this.p.print(`${this.charges[0]},${this.charges[1]},${force},${force2},${this.index},${circle.getIndex()}`);
@@ -227,8 +367,17 @@ class Circle{
             for(let smallCircle of this.smallCircles){
                 smallCircle.render();
             }
+            this.renderText();
         }
     };
+
+    private renderText(): void{
+        if(this.isHovering){
+            this.p.fill(255);
+            this.p.textSize(32);
+            this.p.text(getClassName(this.index),this.location.x-this.radius/2,this.location.y);
+        }
+    }
 
     private populaterandomCircleInside(){
         const alpha = dotOpacity;
@@ -255,19 +404,19 @@ class Circle{
         this.velocity.add(this.acceleration);
         this.location.add(this.velocity);
         if((this.location.x>this.p.windowWidth-this.radius/2 && this.velocity.x>0) ||(this.location.x<this.radius/2 && this.velocity.x<0)){
-            this.velocity.x = this.velocity.x > (maxSpeed)? -1*this.velocity.x * collisionVelocityLoss : this.velocity.x*-1;
+            this.velocity.x = this.velocity.x > (minSpeed)? -1*this.velocity.x * collisionVelocityLoss : this.velocity.x*-1;
         }
         if((this.location.y>this.p.windowHeight-this.radius/2 && this.velocity.y>0) ||(this.location.y<this.radius/2 && this.velocity.y<0)){
-            this.velocity.y = this.velocity.y > (maxSpeed)? this.velocity.y*(-1*collisionVelocityLoss) : this.velocity.y*-1;
+            this.velocity.y = this.velocity.y > (minSpeed)? this.velocity.y*(-1*collisionVelocityLoss) : this.velocity.y*-1;
         }
         this.acceleration.mult(0);
         this.mouseOver();
-
     }
 
     private mouseOver():void{
         if(this.p.dist(this.location.x,this.location.y,this.p.mouseX,this.p.mouseY)<this.radius/2){
             this.isHovering = true;
+
         }else{
             this.isHovering =false;
         }
@@ -298,7 +447,7 @@ class Circle{
         return classes[this.index].classname;
     }
 }
-let circles: Circle[] = [];
+
 const methodCall = async (method: MethodCall)=>{
     const name = method.classname;
     const index:number|undefined = classMapIndex.get(name);
@@ -347,6 +496,7 @@ const sketch = (p:p5) => {
             let numOfmethods = classInfo.methods.length;
             circles.push(new Circle(p,classes.length,i, calculateRadius(numOfmethods,numOfField)));
         }
+        inputFrom = new InputParameters(p);
         await methodCall(methodCalls);
         // circles[0].increaseCharge(1,5);
         // circles[1].increaseCharge(0,5);
@@ -372,13 +522,14 @@ const sketch = (p:p5) => {
             //     circles[i].attracted(circles[j]);
             // }
         }
+        inputFrom.render();
     };
 };
 
 
+
 export default function P5sketch() {
     const app = useRef<HTMLDivElement|null>(null);
-
     useEffect(() => {
         // @ts-ignore
         let newp5 = new p5(sketch, app.current);
