@@ -11,7 +11,7 @@ Each circle represents a class. The initial size of the circle is proportional t
 User studies:
 https://drive.google.com/file/d/12awbWeHjBtVPKi5wBbgK8tr-rE4wQoDI/view?usp=sharing
 
-![alt text](https://github.com/JimmyRowland/p5classcircletypescript/tree/master/src/Screenshotfrom202006130239552.png "Logo Title Text 1")
+![alt text](./src/Screenshotfrom202006130239552.png "Logo Title Text 1")
 
 
 Refernece: 
