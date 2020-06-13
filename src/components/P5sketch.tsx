@@ -67,6 +67,7 @@ let smallCircleRadius = 5;
 let smallCircleMass = 25;
 let showSmallCircle = true;
 let maxOrbitRadius = 50;
+let minOrbitRadius =50;
 
 
 class InputParameters{
@@ -81,6 +82,7 @@ class InputParameters{
     private collisionVelocityLossSlider: p5.Element;
     private smallCircleRadiusSlider: p5.Element;
     private maxOrbitSlider: p5.Element;
+    private minOrbitSlider: p5.Element;
     private alwaysVisibleButton: p5.Element;
     private showSmallCircleButton: p5.Element;
     private showFormButton: p5.Element;
@@ -96,7 +98,7 @@ class InputParameters{
         this.minSpeedSlider = this.p.createSlider(0,10,minSpeed);
         this.minSpeedSlider.position(this.px,space*2);
         this.minSpeedSlider.style('width', '200px')
-        this.bigCircleAttractionConstantSlider = this.p.createSlider(0,100000, attractionConstant);
+        this.bigCircleAttractionConstantSlider = this.p.createSlider(0,10000, attractionConstant);
         this.bigCircleAttractionConstantSlider.position(this.px,space*3);
         this.bigCircleAttractionConstantSlider.style('width', '200px')
         this.smallCircleAttractionConstantSlider = this.p.createSlider(0,50, smallCircleAttractionConstant);
@@ -117,12 +119,15 @@ class InputParameters{
         this.maxOrbitSlider = this.p.createSlider(0,1000, maxOrbitRadius);
         this.maxOrbitSlider.position(this.px,space*9);
         this.maxOrbitSlider.style('width', '200px')
+        this.minOrbitSlider = this.p.createSlider(0,1000, minOrbitRadius);
+        this.minOrbitSlider.position(this.px,space*10);
+        this.minOrbitSlider.style('width', '200px')
         this.alwaysVisibleButton = this.p.createButton("Hide inactive big circles");
-        this.alwaysVisibleButton.position(this.px,space*10);
+        this.alwaysVisibleButton.position(this.px,space*11);
         this.showSmallCircleButton = this.p.createButton("Hide small circles");
-        this.showSmallCircleButton.position(this.px,space*11);
+        this.showSmallCircleButton.position(this.px,space*12);
         this.hideFormButton = this.p.createButton("Hide Form");
-        this.hideFormButton.position(this.px,space*12);
+        this.hideFormButton.position(this.px,space*13);
         this.showFormButton = this.p.createButton("Show Form");
         this.showFormButton.position(this.pxx,0);
     }
@@ -136,6 +141,7 @@ class InputParameters{
             collisionVelocityLoss = Number (this.collisionVelocityLossSlider.value())/100;
             smallCircleRadius = Number (this.smallCircleRadiusSlider.value());
             maxOrbitRadius = Number (this.maxOrbitSlider.value());
+            minOrbitRadius = Number (this.minOrbitSlider.value());
             this.showSmallCircleButton.mousePressed(()=>{showSmallCircle=!showSmallCircle});
             this.alwaysVisibleButton.mousePressed(()=>{alwaysVisible=!alwaysVisible});
             this.hideFormButton.mousePressed(()=>{this.menuToggle()});
@@ -149,9 +155,10 @@ class InputParameters{
             this.p.text("attraction constant between big circles and small circles",padx,space*4-pady);
             this.p.text("small circle populating time interval",padx,space*5-pady);
             this.p.text("big circle growth rate",padx,space*6-pady);
-            this.p.text("velocity loss rate on collision",padx,space*7-pady);
+            this.p.text("wall elasticity",padx,space*7-pady);
             this.p.text("small circle radius",padx,space*8-pady);
             this.p.text("small circle max orbit",padx,space*9-pady);
+            this.p.text("small circle min orbit",padx,space*10-pady);
 
         }
         else{
@@ -192,7 +199,7 @@ class InputParameters{
 
         this.smallCircleRadiusSlider.position(this.px);
         this.maxOrbitSlider.position(this.px);
-
+        this.minOrbitSlider.position(this.px);
         this.alwaysVisibleButton.position(this.px);
 
         this.showSmallCircleButton.position(this.px);
@@ -233,7 +240,7 @@ class SmallCircle{
             // this.p.print(dir);
             const normalizeDir = dir.copy();
             normalizeDir.normalize();
-            if(dir.mag() > smallCircleRadius/2+circle.getRadius()/2){
+            if(dir.mag() > (smallCircleRadius+circle.getRadius())*minOrbitRadius/100){
                 const force = smallCircleMass*circle.getMass()/dir.magSq()*smallCircleAttractionConstant;
                 if(dir.mag()> smallCircleRadius/2+circle.getRadius()/2 +maxOrbitRadius){
                     this.acceleration.add(normalizeDir);
