@@ -8,6 +8,12 @@ https://codesandbox.io/s/nameless-firefly-xop4p
 
 Each circle represents a class. The initial size of the circle is proportional to the number of fields (private variables) and methods (functions) the class has. Each time class A calls a method, it grows bigger. If class A with color A calls a method on class B with color B. Then a small circle B with color B will spawn inside of class A and the small circle B will follow class A. As small circles of color B continue to spawn inside of class A, the force of attraction on class B exerted by class A will increase.
 
+User studies:
+https://drive.google.com/file/d/12awbWeHjBtVPKi5wBbgK8tr-rE4wQoDI/view?usp=sharing
+
+![alt text](https://github.com/JimmyRowland/p5classcircletypescript/tree/master/src/Screenshotfrom202006130239552.png "Logo Title Text 1")
+
+
 Refernece: 
 
 https://www.youtube.com/playlist?list=PLRqwX-V7Uu6Zy51Q-x9tMWIv9cueOFTFA
