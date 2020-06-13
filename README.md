@@ -1,3 +1,20 @@
+# A class coupling visualization
+
+Demo
+
+https://xop4p.csb.app/
+
+https://codesandbox.io/s/nameless-firefly-xop4p
+
+Each circle represents a class. The initial size of the circle is proportional to the number of fields (private variables) and methods (functions) the class has. Each time class A calls a method, it grows bigger. If class A with color A calls a method on class B with color B. Then a small circle B with color B will spawn inside of class A and the small circle B will follow class A. As small circles of color B continue to spawn inside of class A, the force of attraction on class B exerted by class A will increase.
+
+Refernece: 
+
+https://www.youtube.com/playlist?list=PLRqwX-V7Uu6Zy51Q-x9tMWIv9cueOFTFA
+
+https://codesandbox.io/s/0q4wjnj0jw?file=/index.js:993-1001
+
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
