@@ -137,11 +137,13 @@ class InputParameters{
             minSpeed = Number (this.minSpeedSlider.value());
             attractionConstant = Number (this.bigCircleAttractionConstantSlider.value());
             smallCircleAttractionConstant = Number (this.smallCircleAttractionConstantSlider.value());
+            interval = Number (this.intervalSlider.value());
             weightCallMethods = Number (this.weightCallMethodsSlider.value())/100;
             collisionVelocityLoss = Number (this.collisionVelocityLossSlider.value())/100;
             smallCircleRadius = Number (this.smallCircleRadiusSlider.value());
             maxOrbitRadius = Number (this.maxOrbitSlider.value());
             minOrbitRadius = Number (this.minOrbitSlider.value());
+
             this.showSmallCircleButton.mousePressed(()=>{showSmallCircle=!showSmallCircle});
             this.alwaysVisibleButton.mousePressed(()=>{alwaysVisible=!alwaysVisible});
             this.hideFormButton.mousePressed(()=>{this.menuToggle()});
